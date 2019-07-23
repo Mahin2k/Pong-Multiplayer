@@ -20,27 +20,18 @@ display = pygame.display.set_mode(res)
 pygame.display.set_caption("Pong by @stoozy")
 
 
-player_one_score = str(00)
-player_ai_score = str(00)
-
-font = pygame.font.Font('Roboto-Medium.ttf', 32) 
-  
-# create a text suface object, 
-# on which text is drawn on it. 
-
 
 class ball:
 
     def __init__(self):
         self.direction = 0
-        self.speed = 0.7
+        self.speed = 1
         self.reset()  
 
     def reset(self):
         self.x = 550
         self.y = random.randint(25, 600)
         self.direction = random.randrange(30,45)
-
         # Flip a 'coin'
         if random.randrange(2) == 0 :
             # Reverse ball direction, let the other guy get it first
@@ -60,18 +51,16 @@ class ball:
 
         if self.y <= 0:
             self.direction = 180-self.direction
-            print('under 0')
         elif self.y >= 720:
             self.direction = 180-self.direction
-            print('over 720')
 
+    def score(self):
         if self.x > 1250:
+            player_one.score = str(int(player_one.score) + 1).zfill(2)
             self.reset()
-            print('game')
         elif self.x < 0 :
+            player_ai.score = str(int(player_ai.score )+ 1).zfill(2)
             self.reset()
-            print('game')
-
 
 
 
@@ -84,7 +73,7 @@ class paddle:
         self.rect = pygame.draw.rect(display, white, (x, y, 25, 150 ))
         
     def ai_update(self, ball_y_pos):
-        self.rect =pygame.draw.rect(display, white, (self.x, ball_y_pos, 25, 150 ))
+        self.rect = pygame.draw.rect(display, white, (self.x, ball_y_pos-150, 25, 150 ))
         
 
     def update(self):
@@ -117,26 +106,53 @@ def draw_dashed_line():
 
 
 
+
+
 player_one = paddle(20, 330)
 player_ai = paddle(1200, 330)
 Ball = ball()
 
+player_one.score = '00'
+player_ai.score = '00'
+
+font = pygame.font.Font('Roboto-Medium.ttf', 32) 
+largeFont = pygame.font.Font('Roboto-Medium.ttf', 60) 
 while True:
-    text = font.render(player_one_score, True, white,  dark_gray) 
-    text_rect = text.get_rect()
-    display.blit(text, text_rect)
+
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
 
+    
 
     display.fill(dark_gray)
     draw_dashed_line()
 
+    player_one_score = font.render(str(player_one.score), True, white,  dark_gray) 
+    player_ai_score = font.render(str(player_ai.score), True, white,  dark_gray) 
 
+    display.blit(player_one_score, (560, 10))
+    display.blit(player_ai_score, (650, 10))
+
+    if int(player_ai.score) == 5:
+        winner_text = largeFont.render('The winner is: ai', True, white, dark_gray)
+        display.blit(winner_text, (400, 270))
+    elif int(player_ai.score ) == 6:
+        pygame.quit()
+        sys.exit()
+
+    if int(player_one.score) == 5:
+        winner_text = largeFont.render('The winner is: player one', True, white, dark_gray)
+        display.blit(winner_text, (400, 270))
+    elif int(player_one.score ) == 6:
+        pygame.quit()
+        sys.exit()
+        
+        
 
     player_one.update()
     player_ai.ai_update(Ball.y)
     Ball.update()
+    Ball.score()
     pygame.display.update()
