@@ -12,8 +12,8 @@ pygame.init()
 dark_gray = (25 , 25, 25)
 white = (255, 255, 255)
 res = (1250, 720)
-
-
+darker_gray = (15, 15, 15)
+black = (0,0,0)
 #set window size and title
 display = pygame.display.set_mode(res)
 pygame.display.set_caption("Pong by @stoozy")
@@ -42,12 +42,11 @@ class ball:
         self.y -= self.speed * math.cos(direction_rad)
         #update collisions
         self.collisions()
-        
-        
+
+
     def collisions(self):
         # making the ball a rect object so I can check for collisions
         self.rect = pygame.draw.rect(display, white, (self.x, self.y, 20, 20))
-        
         # checking for collisions
         if pygame.sprite.collide_rect(self, player_ai):
             self.direction = 360-self.direction
@@ -70,16 +69,13 @@ class ball:
             player_ai.score = str(int(player_ai.score )+ 1).zfill(2)
             self.reset()
 
-
-
-
-
 class paddle:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.rect = pygame.draw.rect(display, white, (x, y, 25, 200 ))
-    
+        
+    def draw(self, x, y):
+        self.rect = pygame.draw.rect(display, white, (x, y, 25, 150 ))
     # ai updates differently
     def ai_update(self, ball_y_pos):
         self.y = ball_y_pos
@@ -105,6 +101,16 @@ class paddle:
             else:
                 self.y += 1
         self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+
+class update:
+    def __init__(self):
+        player_one.update()
+        player_ai.ai_update(Ball.y)
+        Ball.update()
+        Ball.score()
+
+    def stop():
+        pass
 
 
 
@@ -139,6 +145,7 @@ def draw_scores():
     display.blit(player_one_score, (560, 10))
     display.blit(player_ai_score, (650, 10))
 
+
 player_one = paddle(20, 330)
 player_ai = paddle(1200, 330)
 Ball = ball()
@@ -146,10 +153,95 @@ Ball = ball()
 player_one.score = '00'
 player_ai.score = '00'
 
-font = pygame.font.Font('Roboto-Medium.ttf', 32) 
-largeFont = pygame.font.Font('Roboto-Medium.ttf', 60) 
+small_font = pygame.font.Font('Roboto-Regular.ttf', 25) 
+font = pygame.font.Font('Roboto-Regular.ttf', 32) 
+largeFont = pygame.font.Font('Roboto-Regular.ttf', 60) 
 
 finished = False
+
+state = 'menu'
+
+class game:
+
+    def __init__(self):
+        global state
+        
+        if state == 'menu':
+            player_one.draw(20, 330)
+            player_ai.draw(1200, 330)
+            background =  pygame.draw.rect(display, darker_gray, (400, 200, 450, 250))
+            title = largeFont.render('PONG ONLINE', 1, white, darker_gray )
+            question = small_font.render('How would you like to play?', 1, white, darker_gray)
+            self.online_txt = font.render('online', 1, white, dark_gray)
+            self.offline_txt = font.render('offline', 1, white, dark_gray)
+
+            display.blit(title, (430, 210))
+            display.blit(question, (475, 300))
+            pygame.draw.rect(display, dark_gray, (510, 390, 100, 55))
+        
+            self.online_btn = pygame.draw.rect(display, white, (500, 395, 125, 47))
+            pygame.draw.rect(display, dark_gray, (505, 400, 115, 38 ))
+
+            self.offline_btn = pygame.draw.rect(display, white, (640, 395, 125, 47))
+            pygame.draw.rect(display, dark_gray, (645, 400, 115, 38 ))
+
+            display.blit(self.online_txt, (520, 400))
+            display.blit(self.offline_txt, (660, 400))
+
+            if pygame.mouse.get_pressed()[0]:
+                mouse_pos = pygame.mouse.get_pos()
+                if self.offline_btn.collidepoint(mouse_pos):
+                    state = 'offline'
+                if self.online_btn.collidepoint(mouse_pos):
+                    state = 'online'
+
+        elif state == 'online_waiting': 
+            background =  pygame.draw.rect(display, darker_gray, (400, 200, 450, 250))
+            waiting_txt = font.render('waiting for player two', 1, dark_gray)
+            display.blit(waiting_txt, (430, 210))
+            print(state)
+
+    def update(self):
+        global state
+
+        if state == 'offline':
+            update()
+        elif state == 'online':
+            self.online()
+
+    def online(self):
+            player_one.draw(20, 330)
+            player_ai.draw(1200, 330)
+            background =  pygame.draw.rect(display, darker_gray, (400, 200, 450, 250))
+            title = largeFont.render('PONG ONLINE', 1, white, darker_gray )
+            question = small_font.render('How would you like to play?', 1, white, darker_gray)
+            self.create_txt = font.render('create', 1, white, dark_gray)
+            self.join_txt = font.render('join', 1, white, dark_gray)
+
+            display.blit(title, (430, 210))
+            display.blit(question, (475, 300))
+            pygame.draw.rect(display, dark_gray, (510, 390, 100, 55))
+        
+            self.create_btn = pygame.draw.rect(display, white, (500, 395, 125, 47))
+            pygame.draw.rect(display, dark_gray, (505, 400, 115, 38 ))
+
+            self.join_btn = pygame.draw.rect(display, white, (640, 395, 125, 47))
+            pygame.draw.rect(display, dark_gray, (645, 400, 115, 38 ))
+
+            display.blit(self.create_txt, (520, 400))
+            display.blit(self.join_txt, (675, 400))
+
+            if pygame.mouse.get_pressed()[0]:
+                mouse_pos = pygame.mouse.get_pos()
+                if self.create_btn.collidepoint(mouse_pos):
+                    state = 'online_waiting'
+                    print(state)
+                elif self.join_btn.collidepoint(mouse_pos):
+                    state = 'online_join'
+                    print(state)
+
+
+
 while not finished:
 
     for event in pygame.event.get():
@@ -159,9 +251,6 @@ while not finished:
         if event.type == KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 finished = True
-        if event.type == MOUSEBUTTONDOWN:
-            os.putenv('SDL_VIDEO_WINDOW_POS',"100, 100") 
-            
     
     display.fill(dark_gray)
     draw_dashed_line()
@@ -170,13 +259,13 @@ while not finished:
 
 
 
-        
+    
     #updating objects and screen
-    player_one.update()
-    player_ai.ai_update(Ball.y)
-    Ball.update()
-    Ball.score()
+    Game = game()
+    Game.update()
+   
     pygame.display.update()
+
     
     
 
