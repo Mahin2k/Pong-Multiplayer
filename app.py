@@ -1,5 +1,12 @@
 import pygame, sys, time, math, random, os
 from pygame.locals import *
+from requests import get
+
+import client
+import server
+
+
+ip = get('https://api.ipify.org').text
 
 
 
@@ -8,6 +15,7 @@ os.environ['SDL_VIDEO_CENTERED'] = "1"
 
 pygame.init()
 
+clock = pygame.time.Clock()
 #colors, its B&W lol
 dark_gray = (25 , 25, 25)
 white = (255, 255, 255)
@@ -15,7 +23,7 @@ res = (1250, 720)
 darker_gray = (15, 15, 15)
 black = (0,0,0)
 #set window size and title
-display = pygame.display.set_mode(res)
+
 pygame.display.set_caption("Pong by @stoozy")
 
 
@@ -109,9 +117,6 @@ class update:
         Ball.update()
         Ball.score()
 
-    def stop():
-        pass
-
 
 
 def draw_dashed_line():
@@ -157,92 +162,33 @@ small_font = pygame.font.Font('Roboto-Regular.ttf', 25)
 font = pygame.font.Font('Roboto-Regular.ttf', 32) 
 largeFont = pygame.font.Font('Roboto-Regular.ttf', 60) 
 
-finished = False
-
-state = 'menu'
-
-class game:
-
-    def __init__(self):
-        global state
-        
-        if state == 'menu':
-            player_one.draw(20, 330)
-            player_ai.draw(1200, 330)
-            background =  pygame.draw.rect(display, darker_gray, (400, 200, 450, 250))
-            title = largeFont.render('PONG ONLINE', 1, white, darker_gray )
-            question = small_font.render('How would you like to play?', 1, white, darker_gray)
-            self.online_txt = font.render('online', 1, white, dark_gray)
-            self.offline_txt = font.render('offline', 1, white, dark_gray)
-
-            display.blit(title, (430, 210))
-            display.blit(question, (475, 300))
-            pygame.draw.rect(display, dark_gray, (510, 390, 100, 55))
-        
-            self.online_btn = pygame.draw.rect(display, white, (500, 395, 125, 47))
-            pygame.draw.rect(display, dark_gray, (505, 400, 115, 38 ))
-
-            self.offline_btn = pygame.draw.rect(display, white, (640, 395, 125, 47))
-            pygame.draw.rect(display, dark_gray, (645, 400, 115, 38 ))
-
-            display.blit(self.online_txt, (520, 400))
-            display.blit(self.offline_txt, (660, 400))
-
-            if pygame.mouse.get_pressed()[0]:
-                mouse_pos = pygame.mouse.get_pos()
-                if self.offline_btn.collidepoint(mouse_pos):
-                    state = 'offline'
-                if self.online_btn.collidepoint(mouse_pos):
-                    state = 'online'
-
-        elif state == 'online_waiting': 
-            background =  pygame.draw.rect(display, darker_gray, (400, 200, 450, 250))
-            waiting_txt = font.render('waiting for player two', 1, dark_gray)
-            display.blit(waiting_txt, (430, 210))
-            print(state)
-
-    def update(self):
-        global state
-
-        if state == 'offline':
-            update()
-        elif state == 'online':
-            self.online()
-
-    def online(self):
-            player_one.draw(20, 330)
-            player_ai.draw(1200, 330)
-            background =  pygame.draw.rect(display, darker_gray, (400, 200, 450, 250))
-            title = largeFont.render('PONG ONLINE', 1, white, darker_gray )
-            question = small_font.render('How would you like to play?', 1, white, darker_gray)
-            self.create_txt = font.render('create', 1, white, dark_gray)
-            self.join_txt = font.render('join', 1, white, dark_gray)
-
-            display.blit(title, (430, 210))
-            display.blit(question, (475, 300))
-            pygame.draw.rect(display, dark_gray, (510, 390, 100, 55))
-        
-            self.create_btn = pygame.draw.rect(display, white, (500, 395, 125, 47))
-            pygame.draw.rect(display, dark_gray, (505, 400, 115, 38 ))
-
-            self.join_btn = pygame.draw.rect(display, white, (640, 395, 125, 47))
-            pygame.draw.rect(display, dark_gray, (645, 400, 115, 38 ))
-
-            display.blit(self.create_txt, (520, 400))
-            display.blit(self.join_txt, (675, 400))
-
-            if pygame.mouse.get_pressed()[0]:
-                mouse_pos = pygame.mouse.get_pos()
-                if self.create_btn.collidepoint(mouse_pos):
-                    state = 'online_waiting'
-                    print(state)
-                elif self.join_btn.collidepoint(mouse_pos):
-                    state = 'online_join'
-                    print(state)
 
 
 
-while not finished:
+waiting = True
+
+def menu():
+    global ip
+    global waiting
+    global display
+    print("Hello and welcome to pong-multiplayer by @stoozy\nWhat would you like to do?")
+    print(" 1. Create a game\n 2. Join a game\n 3. Play vs computer (you won't win) ")
+    choice = int(input("Enter choice:"))
+
+    if choice == 3:
+        display = pygame.display.set_mode(res)
+        waiting = False
+    elif choice == 2:
+        host_ip = str(input("What is the IP of the host?\nIP:"))
+        client.join(host_ip)
+        print(host_ip)
+    elif choice == 1:
+        server.create()
+
+
+menu()
+
+while not waiting:
 
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -256,18 +202,8 @@ while not finished:
     draw_dashed_line()
     draw_scores()
     check_winner()
+    update()
 
-
-
-    
     #updating objects and screen
-    Game = game()
-    Game.update()
-   
     pygame.display.update()
 
-    
-    
-
-pygame.quit()
-sys.exit()
