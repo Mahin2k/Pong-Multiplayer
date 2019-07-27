@@ -1,13 +1,13 @@
 import pygame, sys, time, math, random, os
 from pygame.locals import *
 from requests import get
-
-import client
-import server
+from network import Network
 
 
 ip = get('https://api.ipify.org').text
 
+
+state = 'menu'
 
 
 # open game window centered on the screen
@@ -165,30 +165,32 @@ largeFont = pygame.font.Font('Roboto-Regular.ttf', 60)
 
 
 
-waiting = True
-
+finished = True
+n = Network()
 def menu():
-    global ip
-    global waiting
-    global display
+    global ip, finished, display, n
     print("Hello and welcome to pong-multiplayer by @stoozy\nWhat would you like to do?")
     print(" 1. Create a game\n 2. Join a game\n 3. Play vs computer (you won't win) ")
     choice = int(input("Enter choice:"))
 
     if choice == 3:
         display = pygame.display.set_mode(res)
-        waiting = False
+        finished = False
     elif choice == 2:
-        host_ip = str(input("What is the IP of the host?\nIP:"))
-        client.join(host_ip)
-        print(host_ip)
+        join_ip = str(input("What is the IP of the host?\nIP:"))
+        n.connect(join_ip)
+        print(join_ip)
+
     elif choice == 1:
-        server.create()
+        n.host()
+        print('Your IP is: {}'.format(n.server))
+        print(n.p)
+        
 
 
 menu()
 
-while not waiting:
+while not finished:
 
     for event in pygame.event.get():
         if event.type == QUIT:
