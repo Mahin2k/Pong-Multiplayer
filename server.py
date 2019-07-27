@@ -1,6 +1,10 @@
 import socket
 from _thread import *
 import pickle
+from requests import get
+
+
+ip = get('https://api.ipify.org').text
 
 server = "0.0.0.0"
 port = 59559
@@ -9,6 +13,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
     s.bind((server, port))
+    print("Your IP is: {}".format(ip))
 except socket.error as e:
     str(e)
 

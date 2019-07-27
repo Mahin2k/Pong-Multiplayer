@@ -1,14 +1,12 @@
 import socket
 import pickle
-from requests import get
 
-ip = get('https://api.ipify.org').text
 
 
 class Network:
-    def host(self):
+    def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = ip
+        self.server = join_ip
         self.port = 59559
         self.addr = (self.server, self.port)
         self.p = self.connect()
@@ -16,10 +14,7 @@ class Network:
     def getP(self):
         return self.p
 
-    def connect(self, join_ip):
-
-        self.addr = join_ip
-
+    def connect(self):
         try:
             self.client.connect(self.addr)
             return self.client.recv(2048).decode()
