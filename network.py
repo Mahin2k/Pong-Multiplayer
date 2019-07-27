@@ -16,10 +16,9 @@ class Network:
     def getP(self):
         return self.p
 
-    def connect(self, *vars):
+    def connect(self, join_ip):
 
-        for var in vars:
-            self.addr = var
+        self.addr = join_ip
 
         try:
             self.client.connect(self.addr)

@@ -178,8 +178,7 @@ def menu():
         finished = False
     elif choice == 2:
         join_ip = str(input("What is the IP of the host?\nIP:"))
-        n.connect(join_ip)
-        print(join_ip)
+        n.connect(join_ip = join_ip)
 
     elif choice == 1:
         n.host()
