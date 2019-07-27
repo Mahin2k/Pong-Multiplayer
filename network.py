@@ -5,9 +5,11 @@ import pickle
 
 class Network:
     def __init__(self):
+        from app import join_ip
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = join_ip
-        self.port = 59559
+        print(join_ip)
+        self.port = 59555
         self.addr = (self.server, self.port)
         self.p = self.connect()
 
