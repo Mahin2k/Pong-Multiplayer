@@ -2,7 +2,7 @@ import pygame, sys, time, math, random, os
 from pygame.locals import *
 from requests import get
 from network import Network
-
+import server
 
 ip = get('https://api.ipify.org').text
 
@@ -197,7 +197,7 @@ def menu():
         from server import currentId
         n.send('{}:{},{}'.format(currentId, player_one.x, player_one.y))
     elif choice == 1:
-        import server
+       server.main()
         
 
 

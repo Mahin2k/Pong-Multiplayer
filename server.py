@@ -5,8 +5,10 @@ from requests import get
 
 currentId = "0"
 ip = get('https://api.ipify.org').text
+pos = ["0:50,50", "1:100,100"]
+
 def main():
-    global ip, currentId
+    global ip, currentId, pos
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     server = '0.0.0.0'
@@ -25,7 +27,6 @@ def main():
     print("Waiting for a connection")
 
 
-    pos = ["0:50,50", "1:100,100"]
 
     def threaded_client(conn):
         global currentId, pos
@@ -34,12 +35,14 @@ def main():
         reply = ''
         while True:
             try:
-                data = conn.recv(2048)
+                data = conn.recv(2048*2)
                 reply = data.decode('utf-8')
+                print(reply)
                 if not data:
                     conn.send(str.encode("Goodbye"))
                     break
                 else:
+                    global pos
                     print("Recieved: " + reply)
                     arr = reply.split(":")
                     id = int(arr[0])
@@ -50,10 +53,11 @@ def main():
 
                     reply = pos[nid][:]
                     print("Sending: " + reply)
+                    conn.sendall(str.encode(reply))
 
-                conn.sendall(str.encode(reply))
-            except:
-                break
+            except socket.error as e:
+                print(e)
+                print("couldn't send data")
 
         print("Connection Closed")
         conn.close()
