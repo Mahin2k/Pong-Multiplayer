@@ -166,7 +166,7 @@ largeFont = pygame.font.Font('Roboto-Regular.ttf', 60)
 finished = True
 
 join_ip = None
-
+player_one_pos = (player_one.x, player_one.y)
 def menu():
     global ip, finished, display, n, join_ip
     print("Hello and welcome to pong-multiplayer by @stoozy\nWhat would you like to do?")
@@ -179,6 +179,7 @@ def menu():
     elif choice == 2:
         join_ip = str(input("What is the IP of the host?\nIP:"))
         n = Network()
+        n.send(player_one_pos)
     elif choice == 1:
         import server
         
