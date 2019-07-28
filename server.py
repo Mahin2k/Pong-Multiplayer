@@ -53,7 +53,8 @@ def main():
 
                     reply = pos[nid][:]
                     print("Sending: " + reply)
-                    conn.sendall(str.encode(reply))
+                
+                conn.sendall(str.encode(reply))
 
             except socket.error as e:
                 print(e)
