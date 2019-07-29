@@ -169,7 +169,7 @@ n = None
 display = None
 
 def send_data():
-    data = '{}:{},{}'.format(currentId, player_one.x, player_one.y)
+    data = '{}:{},{}'.format(server.currentId, player_one.x, player_one.y)
     reply = n.send(data)
     return reply
 
@@ -184,6 +184,7 @@ def parse_data():
         return 0,0
 
 def game_loop():
+    global finished
     while not finished:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -212,14 +213,13 @@ def menu():
         display = pygame.display.set_mode(res)
         finished = False
         game_loop()
-
     elif choice == 2:
         join_ip = str(input("What is the IP of the host?\nIP:"))
-        display = pygame.display.set_mode(res)
         finished = False
-        game_loop()
         if server.connected == 1:
             display = pygame.display.set_mode(res)
+            game_loop()
+
         while not finished:
             n = Network()
             send_data()
@@ -229,6 +229,8 @@ def menu():
         server.main()
         if server.connected == 1:
             display = pygame.display.set_mode(res)
+            game_loop()
+
        
        
         
