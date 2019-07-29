@@ -198,6 +198,7 @@ def menu():
     elif choice == 2:
         join_ip = str(input("What is the IP of the host?\nIP:"))
         display = pygame.display.set_mode(res)
+        finished = False
         while not finished:
             n = Network()
             n.send('{}:{},{}'.format(currentId, player_one.x, player_one.y))
