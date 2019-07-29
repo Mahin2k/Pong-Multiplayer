@@ -3,8 +3,6 @@ from pygame.locals import *
 from requests import get
 from network import Network
 import server
-from server import currentId
-
 
 ip = get('https://api.ipify.org').text
 
@@ -166,11 +164,12 @@ largeFont = pygame.font.Font('Roboto-Regular.ttf', 60)
 
 
 finished = True
-
 join_ip = None
+n = None
+display = None
 
 def send_data():
-    data = str(n.id) + ':' +str(player_one.x) + "," + str(player_one.y)
+    data = '{}:{},{}'.format(currentId, player_one.x, player_one.y)
     reply = n.send(data)
     return reply
 
@@ -185,7 +184,6 @@ def parse_data():
         return 0,0
 
 def game_loop():
-    global finished, display
     while not finished:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -219,13 +217,18 @@ def menu():
         join_ip = str(input("What is the IP of the host?\nIP:"))
         display = pygame.display.set_mode(res)
         finished = False
+        game_loop()
+        if server.connected == 1:
+            display = pygame.display.set_mode(res)
         while not finished:
             n = Network()
-            n.send('{}:{},{}'.format(currentId, player_one.x, player_one.y))
-            game_loop()
+            send_data()
+            
+        
     elif choice == 1:
-        display = pygame.display.set_mode(res)
         server.main()
+        if server.connected == 1:
+            display = pygame.display.set_mode(res)
        
        
         

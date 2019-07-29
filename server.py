@@ -3,6 +3,7 @@ import threading
 import sys
 from requests import get
 
+connected = None
 currentId = '0'
 ip = get('https://api.ipify.org').text
 pos = ["0:50,50", "1:100,100"]
@@ -65,6 +66,7 @@ def main():
     while True:
         conn, addr = s.accept()
         print("Connected to: ", addr)
+        connected = 1
 
         thread = threading.Thread(target=threaded_client,args=(conn,))
         thread.start()
