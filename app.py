@@ -184,6 +184,28 @@ def parse_data():
     except:
         return 0,0
 
+
+
+def game_loop():
+    global finished, display
+    while not finished:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    finished = True
+        
+        display.fill(dark_gray)
+        draw_dashed_line()
+        draw_scores()
+        check_winner()
+        update()
+
+        #updating objects and screen
+        pygame.display.update()
+
 def menu():
     global ip, finished, display, n, join_ip
     print("Hello and welcome to pong-multiplayer by @stoozy\nWhat would you like to do?")
@@ -210,24 +232,3 @@ def menu():
 
 
 menu()
-
-
-def game_loop():
-    while not finished:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    finished = True
-        
-        display.fill(dark_gray)
-        draw_dashed_line()
-        draw_scores()
-        check_winner()
-        update()
-
-        #updating objects and screen
-        pygame.display.update()
-
