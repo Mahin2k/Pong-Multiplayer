@@ -184,8 +184,6 @@ def parse_data():
     except:
         return 0,0
 
-
-
 def game_loop():
     global finished, display
     while not finished:
@@ -226,8 +224,10 @@ def menu():
             n.send('{}:{},{}'.format(currentId, player_one.x, player_one.y))
             game_loop()
     elif choice == 1:
-       server.main()
-       display = pygame.display.set_mode(res)
+        display = pygame.display.set_mode(res)
+        server.main()
+       
+       
         
 
 
