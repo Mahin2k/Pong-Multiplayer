@@ -1,9 +1,9 @@
 import socket
-from _thread import *
+import threading 
 import sys
 from requests import get
 
-currentId = "0"
+currentId = '0'
 ip = get('https://api.ipify.org').text
 pos = ["0:50,50", "1:100,100"]
 
@@ -13,10 +13,10 @@ def main():
 
     server = '0.0.0.0'
     port = 59559
-
+    """
     server_ip = socket.gethostbyname(server)
     print("Your IP is: %s" % ip)
-
+    """
     try:
         s.bind((server, port))
 
@@ -52,24 +52,22 @@ def main():
                     if id == 1: nid = 0
 
                     reply = pos[nid][:]
-                    print("Sending: " + reply)
-                
-                conn.sendall(str.encode(reply))
+                    print("Sending: " + reply)                
+                conn.sendall(reply.encode())
 
             except socket.error as e:
                 print(e)
                 print("couldn't send data")
-
+                break
         print("Connection Closed")
         conn.close()
-        sys.exit()
-
+        
     while True:
         conn, addr = s.accept()
         print("Connected to: ", addr)
 
-        start_new_thread(threaded_client, (conn,))
+        thread = threading.Thread(target=threaded_client,args=(conn,))
+        thread.start()
 
 if __name__ == "__main__":
     main()
-    

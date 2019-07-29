@@ -3,6 +3,8 @@ from pygame.locals import *
 from requests import get
 from network import Network
 import server
+from server import currentId
+
 
 ip = get('https://api.ipify.org').text
 
@@ -191,34 +193,40 @@ def menu():
     if choice == 3:
         display = pygame.display.set_mode(res)
         finished = False
+        game_loop()
+
     elif choice == 2:
         join_ip = str(input("What is the IP of the host?\nIP:"))
-        n = Network()
-        from server import currentId
-        n.send('{}:{},{}'.format(currentId, player_one.x, player_one.y))
+        display = pygame.display.set_mode(res)
+        while not finished:
+            n = Network()
+            n.send('{}:{},{}'.format(currentId, player_one.x, player_one.y))
+            game_loop()
     elif choice == 1:
        server.main()
+       display = pygame.display.set_mode(res)
         
 
 
 menu()
 
-while not finished:
 
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                finished = True
-    
-    display.fill(dark_gray)
-    draw_dashed_line()
-    draw_scores()
-    check_winner()
-    update()
+def game_loop():
+    while not finished:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    finished = True
+        
+        display.fill(dark_gray)
+        draw_dashed_line()
+        draw_scores()
+        check_winner()
+        update()
 
-    #updating objects and screen
-    pygame.display.update()
+        #updating objects and screen
+        pygame.display.update()
 

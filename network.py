@@ -1,5 +1,5 @@
 import socket
-
+import time
 
 
 class Network:
@@ -11,6 +11,7 @@ class Network:
         self.port = 59555
         self.addr = (self.server, self.port)
         self.p = self.connect()
+        print(self.p)
 
     def getP(self):
         return self.p
@@ -19,12 +20,16 @@ class Network:
         try:
             self.client.connect(self.addr)
             return self.client.recv(2048).decode()
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
     def send(self, data):
         try:
-            self.client.send(str.encode(data))
-            return self.client.recv(2048*2)
+            self.client.sendall(data.encode())
+            response =  self.client.recv(2048*2)
+            print(response)
+            return response
         except socket.error as e:
+            print(e)
+        except Exception as e:
             print(e)
