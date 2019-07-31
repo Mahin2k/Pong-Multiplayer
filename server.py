@@ -1,75 +1,50 @@
 import socket
-import threading 
+import pickle 
+import threading
 import sys
-from requests import get
-
-connected = None
-currentId = '0'
-ip = get('https://api.ipify.org').text
-pos = ["0:50,50", "1:100,100"]
-
-def main():
-    global ip, currentId, pos
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    server = '0.0.0.0'
-    port = 59559
-    """
-    server_ip = socket.gethostbyname(server)
-    print("Your IP is: %s" % ip)
-    """
-    try:
-        s.bind((server, port))
-
-    except socket.error as e:
-        print(str(e))
-
-    s.listen(2)
-    print("Waiting for a connection")
 
 
+HOST = 'localhost'  # Standard loopback interface address (localhost)
+PORT = 5555        # Port to listen on (non-privileged ports are > 1023)
 
-    def threaded_client(conn):
-        global currentId, pos
-        conn.send(str.encode(currentId))
-        currentId = "1"
-        reply = ''
-        while True:
-            try:
-                data = conn.recv(2048*2)
-                reply = data.decode('utf-8')
-                print(reply)
-                if not data:
-                    conn.send(str.encode("Goodbye"))
-                    break
-                else:
-                    global pos
-                    print("Recieved: " + reply)
-                    arr = reply.split(":")
-                    id = int(arr[0])
-                    pos[id] = reply
+s  = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-                    if id == 0: nid = 1
-                    if id == 1: nid = 0
+s.bind((HOST, PORT))
 
-                    reply = pos[nid][:]
-                    print("Sending: " + reply)                
-                conn.sendall(reply.encode())
+s.listen(2)
+print('Server started. Waiting for connection... ')
 
-            except socket.error as e:
-                print(e)
-                print("couldn't send data")
+
+client_id = 0
+pos = None
+
+def client_thread(conn):
+    global client_id, pos
+    while 1:
+        try:
+            data = conn.recv(4096*2)
+            
+            if not data:
+                print('Bye')
                 break
-        print("Connection Closed")
-        conn.close()
+            else:
+                client_id
+                reply = pickle.loads(data)
+                print(reply)
+
         
-    while True:
-        conn, addr = s.accept()
-        print("Connected to: ", addr)
-        connected = 1
+        except socket.error as e:
+            print(e)
+        except Exception as e:
+            print(e)
+    conn.close()
+    print('Connection Closed.')
+    sys.exit()
 
-        thread = threading.Thread(target=threaded_client,args=(conn,))
-        thread.start()
-
-if __name__ == "__main__":
-    main()
+while 1:
+    conn, addr = s.accept()
+    client_id = client_id + 1
+    print('connected to:', addr)
+    thread = threading.Thread(target = client_thread, args= (conn,))
+    print("You are player", client_id)
+    thread.start()

@@ -33,7 +33,7 @@ class ball:
     def __init__(self):
         self.direction = 0
         self.speed = 0.7
-        self.reset()  
+        self.reset()
 
     def reset(self):
         self.x = 550
@@ -81,7 +81,7 @@ class paddle:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        
+
     def draw(self, x, y):
         self.rect = pygame.draw.rect(display, white, (x, y, 25, 150 ))
     # ai updates differently
@@ -92,12 +92,12 @@ class paddle:
         if ball_y_pos > 560:
             self.y = 560
         self.rect = pygame.draw.rect(display, white, (self.x, self.y , 25, 150 ))
-        
+
 
     def update(self):
         #pressed keys object. Updates on the while loop
         keys = pygame.key.get_pressed()
-        #Player movement 
+        #Player movement
         if keys[pygame.K_UP]:
             if self.y == 10:
                 self.y = self.y
@@ -144,8 +144,8 @@ def check_winner():
         sys.exit()
 
 def draw_scores():
-    player_one_score = font.render(str(player_one.score), True, white,  dark_gray) 
-    player_ai_score = font.render(str(player_ai.score), True, white,  dark_gray) 
+    player_one_score = font.render(str(player_one.score), True, white,  dark_gray)
+    player_ai_score = font.render(str(player_ai.score), True, white,  dark_gray)
 
     display.blit(player_one_score, (560, 10))
     display.blit(player_ai_score, (650, 10))
@@ -158,9 +158,9 @@ Ball = ball()
 player_one.score = '00'
 player_ai.score = '00'
 
-small_font = pygame.font.Font('Roboto-Regular.ttf', 25) 
-font = pygame.font.Font('Roboto-Regular.ttf', 32) 
-largeFont = pygame.font.Font('Roboto-Regular.ttf', 60) 
+small_font = pygame.font.Font('Roboto-Regular.ttf', 25)
+font = pygame.font.Font('Roboto-Regular.ttf', 32)
+largeFont = pygame.font.Font('Roboto-Regular.ttf', 60)
 
 
 finished = True
@@ -193,7 +193,7 @@ def game_loop():
             if event.type == KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     finished = True
-        
+
         display.fill(dark_gray)
         draw_dashed_line()
         draw_scores()
@@ -213,27 +213,16 @@ def menu():
         display = pygame.display.set_mode(res)
         finished = False
         game_loop()
-    elif choice == 2:
+    else:
         join_ip = str(input("What is the IP of the host?\nIP:"))
         finished = False
-        if server.connected == 1:
-            display = pygame.display.set_mode(res)
-            game_loop()
-
+        n = Network()
         while not finished:
-            n = Network()
             send_data()
-            
-        
-    elif choice == 1:
-        server.main()
-        if server.connected == 1:
-            display = pygame.display.set_mode(res)
-            game_loop()
+            print("connection status:" , n.connected)
+        display = pygame.display.set_mode(res)
+        game_loop()
 
-       
-       
-        
 
 
 menu()
