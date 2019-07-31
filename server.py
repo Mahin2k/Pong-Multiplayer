@@ -16,21 +16,32 @@ print('Server started. Waiting for connection... ')
 
 
 client_id = 0
-pos = None
+pos = ["0:20, 330", "1:1210,330"]
+
 
 def client_thread(conn):
     global client_id, pos
+    reply = ''
     while 1:
         try:
             data = conn.recv(4096*2)
-            
+            reply = str(pickle.loads(data))
             if not data:
                 print('Bye')
                 break
             else:
-                client_id
-                reply = pickle.loads(data)
-                print(reply)
+                print("Recieved: " + reply)
+                arr = reply.split(":")
+                id = int(arr[0])
+                pos[id] = reply
+
+                if id == 0: nid = 1
+                if id == 1: nid = 0
+
+                reply = pos[nid][:]
+                print("Sending: " + reply)
+
+            conn.sendall(pickle.dumps(reply))
 
         
         except socket.error as e:
@@ -43,8 +54,8 @@ def client_thread(conn):
 
 while 1:
     conn, addr = s.accept()
-    client_id = client_id + 1
+    client_id = client_id + 1 
     print('connected to:', addr)
     thread = threading.Thread(target = client_thread, args= (conn,))
-    print("You are player", client_id)
+    print("player {}, joined the game. Waiting for second player.".format(client_id))
     thread.start()
