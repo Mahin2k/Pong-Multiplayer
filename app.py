@@ -104,22 +104,24 @@ class paddle:
 
     def update(self):
         #pressed keys object. Updates on the while loop
-        if state == 'offline':
-            keys = pygame.key.get_pressed()
-            #Player movement
-            if keys[pygame.K_UP]:
-                if self.y == 10:
-                    self.y = self.y
-                else:
-                    self.y -= 1
-            elif keys[pygame.K_DOWN]:
-                if self.y == 560:
-                    self.y = self.y
-                else:
-                    self.y += 1
-            self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
-        elif state == 'online_game':
-            self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+        keys = pygame.key.get_pressed()
+        #Player movement
+        if keys[pygame.K_UP]:
+            if self.y == 10:
+                self.y = self.y
+            else:
+                self.y -= 1
+        elif keys[pygame.K_DOWN]:
+            if self.y == 560:
+                self.y = self.y
+            else:
+                self.y += 1
+        self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+    
+    def online_update(self):
+        print(player_two_pos)
+        self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+
 
 
 
@@ -163,6 +165,7 @@ join_ip = None
 n = None
 display = None
 player_two = None
+player_two_pos = None
 
 player_one = paddle(20, 330)
 player_ai = paddle(1200, 330)
@@ -213,18 +216,22 @@ def game_loop():
             check_winner()
             player_two = paddle(1200, 330)
 
-            # player_one.update()
-            # player_two.update()
+            player_one.update()
+            player_two.online_update()
 
             Ball.update()
             Ball.score()
+            
+            player_one_pos = '{}:{},{}'.format(n.id, player_one.x, player_one.y)
+            player_two_pos = n.send(player_one_pos)
+            print(player_two_pos)
 
             #updating objects and screen
             pygame.display.update()
 
 
 def menu():
-    global ip, finished, display, n, join_ip, state
+    global ip, finished, display, n, join_ip, state, player_two_pos
     print("Hello and welcome to pong-multiplayer by @stoozy\nWhat would you like to do?")
     print(" 1. Create a game\n 2. Join a game\n 3. Play vs computer (you won't win) ")
     choice = int(input("Enter choice:"))
@@ -242,10 +249,7 @@ def menu():
         
         display = pygame.display.set_mode(res)
         game_loop()
-        while not finished:
-            player_one_pos = '{}:{},{}'.format(n.id, player_one.x, player_one.y)
-            player_two_pos = n.send(player_one_pos)
-            print(player_two_pos)
+
 
 
 
