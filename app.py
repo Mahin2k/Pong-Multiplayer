@@ -2,7 +2,7 @@ import pygame, sys, time, math, random, os
 from pygame.locals import *
 from requests import get
 from network import Network
-import server
+
 
 ip = get('https://api.ipify.org').text
 
@@ -56,11 +56,19 @@ class ball:
         # making the ball a rect object so I can check for collisions
         self.rect = pygame.draw.rect(display, white, (self.x, self.y, 20, 20))
         # checking for collisions
-        if pygame.sprite.collide_rect(self, player_ai):
-            self.direction = 360-self.direction
+        if state == 'offline':
+            if pygame.sprite.collide_rect(self, player_ai):
+                self.direction = 360-self.direction
+            if pygame.sprite.collide_rect(self, player_one):
+                self.direction = 360-self.direction
 
-        if pygame.sprite.collide_rect(self, player_one):
-            self.direction = 360-self.direction
+        if state == 'online_game':
+            if pygame.sprite.collide_rect(self, player_two):
+                self.direction = 360-self.direction
+            if pygame.sprite.collide_rect(self, player_one):
+                self.direction = 360-self.direction
+
+
 
         # checking for out of bounds
         if self.y <= 0:
@@ -96,26 +104,23 @@ class paddle:
 
     def update(self):
         #pressed keys object. Updates on the while loop
-        keys = pygame.key.get_pressed()
-        #Player movement
-        if keys[pygame.K_UP]:
-            if self.y == 10:
-                self.y = self.y
-            else:
-                self.y -= 1
-        elif keys[pygame.K_DOWN]:
-            if self.y == 560:
-                self.y = self.y
-            else:
-                self.y += 1
-        self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+        if state == 'offline':
+            keys = pygame.key.get_pressed()
+            #Player movement
+            if keys[pygame.K_UP]:
+                if self.y == 10:
+                    self.y = self.y
+                else:
+                    self.y -= 1
+            elif keys[pygame.K_DOWN]:
+                if self.y == 560:
+                    self.y = self.y
+                else:
+                    self.y += 1
+            self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+        elif state == 'online_game':
+            self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
 
-class update:
-    def __init__(self):
-        player_one.update()
-        player_ai.ai_update(Ball.y)
-        Ball.update()
-        Ball.score()
 
 
 
@@ -151,6 +156,14 @@ def draw_scores():
     display.blit(player_ai_score, (650, 10))
 
 
+
+
+finished = True
+join_ip = None
+n = None
+display = None
+player_two = None
+
 player_one = paddle(20, 330)
 player_ai = paddle(1200, 330)
 Ball = ball()
@@ -158,33 +171,18 @@ Ball = ball()
 player_one.score = '00'
 player_ai.score = '00'
 
+
+
 small_font = pygame.font.Font('Roboto-Regular.ttf', 25)
 font = pygame.font.Font('Roboto-Regular.ttf', 32)
 largeFont = pygame.font.Font('Roboto-Regular.ttf', 60)
 
 
-finished = True
-join_ip = None
-n = None
-display = None
-
-def send_data():
-    data = '{}:{},{}'.format(server.currentId, player_one.x, player_one.y)
-    reply = n.send(data)
-    return reply
 
 
-@staticmethod
-def parse_data():
-    try:
-        d = data.split(":")[1].split(',')
-        return int(d[0]), int(d[1])
-        return reply
-    except:
-        return 0,0
 
 def game_loop():
-    global finished
+    global finished, state, player_two
     while not finished:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -194,34 +192,64 @@ def game_loop():
                 if event.key == pygame.K_ESCAPE:
                     finished = True
 
-        display.fill(dark_gray)
-        draw_dashed_line()
-        draw_scores()
-        check_winner()
-        update()
+        if state == 'offline':
+            display.fill(dark_gray)
+            draw_dashed_line()
+            draw_scores()
+            check_winner()
+            
+            player_one.update()
+            player_ai.ai_update(Ball.y)
+            Ball.update()
+            Ball.score()
 
-        #updating objects and screen
-        pygame.display.update()
+            #updating objects and screen
+            pygame.display.update()
+        
+        elif state == 'online_game':
+            display.fill(dark_gray)
+            draw_dashed_line()
+            draw_scores()
+            check_winner()
+            player_two = paddle(1200, 330)
+
+            # player_one.update()
+            # player_two.update()
+
+            Ball.update()
+            Ball.score()
+
+            #updating objects and screen
+            pygame.display.update()
+
 
 def menu():
-    global ip, finished, display, n, join_ip
+    global ip, finished, display, n, join_ip, state
     print("Hello and welcome to pong-multiplayer by @stoozy\nWhat would you like to do?")
     print(" 1. Create a game\n 2. Join a game\n 3. Play vs computer (you won't win) ")
     choice = int(input("Enter choice:"))
 
     if choice == 3:
+        state = 'offline'
         display = pygame.display.set_mode(res)
         finished = False
         game_loop()
     else:
+        state = 'online_game'
         join_ip = str(input("What is the IP of the host?\nIP:"))
         finished = False
         n = Network()
-        while not finished:
-            send_data()
-            print("connection status:" , n.connected)
+        
         display = pygame.display.set_mode(res)
         game_loop()
+        while not finished:
+            player_one_pos = '{}:{},{}'.format(n.id, player_one.x, player_one.y)
+            player_two_pos = n.send(player_one_pos)
+            print(player_two_pos)
+
+
+
+
 
 
 

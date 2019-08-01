@@ -21,6 +21,7 @@ pos = ["0:20, 330", "1:1210,330"]
 
 def client_thread(conn):
     global client_id, pos
+    conn.send(pickle.dumps(client_id))
     reply = ''
     while 1:
         try:
@@ -44,18 +45,14 @@ def client_thread(conn):
             conn.sendall(pickle.dumps(reply))
 
         
-        except socket.error as e:
-            print(e)
-        except Exception as e:
-            print(e)
+        except:
+            pass
     conn.close()
     print('Connection Closed.')
-    sys.exit()
 
 while 1:
     conn, addr = s.accept()
-    client_id = client_id + 1 
     print('connected to:', addr)
     thread = threading.Thread(target = client_thread, args= (conn,))
-    print("player {}, joined the game. Waiting for second player.".format(client_id))
     thread.start()
+    client_id += 1
