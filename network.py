@@ -1,5 +1,6 @@
 import socket
 import pickle
+import select
 
 class Network:
     def __init__(self):
@@ -14,5 +15,15 @@ class Network:
 
     def send(self, data):
         self.client.sendall(pickle.dumps(data)) 
-        response = pickle.loads(self.client.recv(4096*2))
-        return response
+        return pickle.loads(self.client.recv(4096*2))
+        
+    def send_ball_pos(self, data):
+        self.client.sendall(pickle.dumps(data))
+
+    def listen(self) :
+        obj = pickle.loads(self.client.recv(4096*2))
+        ball = obj.split(':')[0]
+        if ball == 'ball':
+            return obj
+        else:
+            return

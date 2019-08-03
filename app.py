@@ -27,6 +27,9 @@ black = (0,0,0)
 pygame.display.set_caption("Pong by @stoozy")
 
 
+player_two_pos = ''
+player_one_pos = ''
+
 # this is the ball class. It has a reset and update function. It also keeps track of the score.
 class ball:
 
@@ -48,8 +51,16 @@ class ball:
         direction_rad = math.radians(self.direction)
         self.x += self.speed * math.sin(direction_rad)
         self.y -= self.speed * math.cos(direction_rad)
+        current_pos = f'ball:{self.x},{self.y}'
+        ball_pos = n.send_ball_pos(current_pos)
         #update collisions
         self.collisions()
+
+    def online_update(self):
+        self.update()
+        # print(n.listen())
+        ball_pos = n.listen()
+        print(ball_pos)
 
 
     def collisions(self):
@@ -119,8 +130,22 @@ class paddle:
         self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
     
     def online_update(self):
-        print(player_two_pos)
-        self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+        global player_one_pos, player_two_pos
+        player_one_pos = '{}:{},{}'.format(n.id, player_one.x, player_one.y)
+        player_two_pos = n.send(player_one_pos)
+        arr = player_two_pos.split(':')
+
+        if arr[0] == 'ball':
+            print('ball object')
+            self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150 ))
+        else:
+            tup = arr[1].split(',')
+            print(tup)
+            x = tup[0]
+            y = tup[1]
+            self.rect = pygame.draw.rect(display, white, (self.x, int(y), 25, 150 ))
+            received =True
+
 
 
 
@@ -165,7 +190,6 @@ join_ip = None
 n = None
 display = None
 player_two = None
-player_two_pos = None
 
 player_one = paddle(20, 330)
 player_ai = paddle(1200, 330)
@@ -218,14 +242,12 @@ def game_loop():
 
             player_one.update()
             player_two.online_update()
-
-            Ball.update()
+            if n.id == 0:
+                Ball.update()
+            elif n.id == 1:
+                Ball.online_update()
             Ball.score()
             
-            player_one_pos = '{}:{},{}'.format(n.id, player_one.x, player_one.y)
-            player_two_pos = n.send(player_one_pos)
-            print(player_two_pos)
-
             #updating objects and screen
             pygame.display.update()
 
@@ -246,14 +268,8 @@ def menu():
         join_ip = str(input("What is the IP of the host?\nIP:"))
         finished = False
         n = Network()
-        
         display = pygame.display.set_mode(res)
         game_loop()
-
-
-
-
-
 
 
 

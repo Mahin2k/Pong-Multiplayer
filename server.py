@@ -33,20 +33,26 @@ def client_thread(conn):
             else:
                 print("Recieved: " + reply)
                 arr = reply.split(":")
-                id = int(arr[0])
-                pos[id] = reply
+                if arr[0] == 'ball':
+                    response = reply
+                    if client_id == 2 :
+                        print("Sending: " + response + ' to client: ' + str(client_id))
+                        conn.sendall(pickle.dumps(response))
+                else:
+                    id = int(arr[0])
+                    pos[id] = reply
 
-                if id == 0: nid = 1
-                if id == 1: nid = 0
+                    if id == 0: nid = 1
+                    if id == 1: nid = 0
 
-                reply = pos[nid][:]
-                print("Sending: " + reply)
+                    reply = pos[nid][:]
+                print("Sending: " + reply + ' to client: ' + str(client_id))
+                conn.sendall(pickle.dumps(reply))
 
-            conn.sendall(pickle.dumps(reply))
-
-        
-        except:
-            pass
+        except socket.error as e:
+            print(e)
+        except Exception as e:
+            print(e)
     conn.close()
     print('Connection Closed.')
 
