@@ -1,64 +1,92 @@
 import socket
-import pickle 
-import threading
-import sys
+import select
 
 
-HOST = 'localhost'  # Standard loopback interface address (localhost)
-PORT = 5555        # Port to listen on (non-privileged ports are > 1023)
+def main():
 
-s  = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-s.bind((HOST, PORT))
+    # host and port
+    host = 'localhost'
+    port = 5555
 
-s.listen(2)
-print('Server started. Waiting for connection... ')
+    # binding socket and listening
+    sock.bind((host, port))
+    sock.listen(2)
 
+    print(f'Server started on {host}:{port}')
 
-client_id = 0
-pos = ["0:20, 330", "1:1210,330"]
+    sockets_list = [sock]
+    outputs = []
+    clients = {}
+    users = []
 
-
-def client_thread(conn):
-    global client_id, pos
-    conn.send(pickle.dumps(client_id))
-    reply = ''
-    while 1:
+    def get_user(c):
         try:
-            data = conn.recv(4096*2)
-            reply = str(pickle.loads(data))
-            if not data:
-                print('Bye')
-                break
-            else:
-                print("Recieved: " + reply)
-                arr = reply.split(":")
-                if arr[0] == 'ball':
-                    response = reply
-                    if client_id == 2 :
-                        print("Sending: " + response + ' to client: ' + str(client_id))
-                        conn.sendall(pickle.dumps(response))
-                else:
-                    id = int(arr[0])
-                    pos[id] = reply
+            return c.recv(4096).decode()
 
-                    if id == 0: nid = 1
-                    if id == 1: nid = 0
-
-                    reply = pos[nid][:]
-                print("Sending: " + reply + ' to client: ' + str(client_id))
-                conn.sendall(pickle.dumps(reply))
-
-        except socket.error as e:
-            print(e)
         except Exception as e:
             print(e)
-    conn.close()
-    print('Connection Closed.')
 
-while 1:
-    conn, addr = s.accept()
-    print('connected to:', addr)
-    thread = threading.Thread(target = client_thread, args= (conn,))
-    thread.start()
-    client_id += 1
+    while True:
+        print('\n waiting for next event')
+
+        #   selecting readable/writable lists with select module
+        readable, writable, errs = select.select(sockets_list, outputs, [])
+
+        if readable:
+            for i, s in enumerate(readable):
+                # check if socket is server socket
+                if s == sock:
+                    connection, address = sock.accept()
+                    sockets_list.append(connection)
+
+                    username = get_user(connection)
+
+                    clients[connection] = username
+                    users.append(username)
+
+                    # check if two players are connected
+                    if len(users) == 2:
+                        for client, username in clients.items():
+                            # sending player id and start signal to all sockets
+                            # other than the server socket
+                            if client != s:
+                                for j, user in enumerate(users):
+                                    if clients[client] == user:
+                                        client.send(f'{j}:start'.encode())
+                                        print(f'Sending start signal to {user} ID:{j}')
+                    else:
+                        connection.send('wait'.encode())
+
+                else:
+                    data = s.recv(4096).decode()
+
+                    if not data:
+                        s.close()
+                        sockets_list.remove(s)
+                        del clients[s]
+
+                    if ':' in data:
+                        arr = data.split(':')
+                        player_id = 0
+                        player_one_pos = arr[0]
+                        ball_pos = arr[1]
+                        print('Client one data:', player_one_pos, ball_pos)
+                        for j, client in enumerate(clients):
+                            if j != player_id:
+                                client.send(data.encode())
+                                print(f'Sending {data} to player: {j}')
+                    elif ':' not in data:
+                        arr = data.split('.')
+                        player_id = 1
+                        player_two_pos = arr[0]
+                        print("Client two data:", player_two_pos)
+                        for j, client in enumerate(clients):
+                            if j != player_id:
+                                client.send(data.encode())
+                                print(f'Sending {data} to player: {j}')
+
+
+if __name__ == '__main__':
+    main()

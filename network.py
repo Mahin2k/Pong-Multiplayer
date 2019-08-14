@@ -1,29 +1,36 @@
 import socket
-import pickle
-import select
+
 
 class Network:
-    def __init__(self):
+    def __init__(self, username):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = 'localhost'
+        self.MAX_LENGTH = 4096
         self.port = 5555
-        self.id = self.connect()
+        self.address = (self.host, self.port)
+        self.id = ''
+        self.state = ''
+        self.connect(username)
 
-    def connect(self):
-        self.client.connect((self.host, self.port))
-        return pickle.loads(self.client.recv(4096*2))
+    def connect(self, username):
+        self.client.connect(self.address)
+        self.snd(username)
+        data = self.rcv(self.MAX_LENGTH)
+        if data == 'wait':
+            self.state = 'wait'
+        elif ':' in data:
+            arr = data.split(':')
+            print(arr)
+            self.state = arr[1]
+            self.id = arr[0]
 
-    def send(self, data):
-        self.client.sendall(pickle.dumps(data)) 
-        return pickle.loads(self.client.recv(4096*2))
-        
-    def send_ball_pos(self, data):
-        self.client.sendall(pickle.dumps(data))
+    def snd(self, data):
+        self.client.send(data.encode())
 
-    def listen(self) :
-        obj = pickle.loads(self.client.recv(4096*2))
-        ball = obj.split(':')[0]
-        if ball == 'ball':
-            return obj
-        else:
-            return
+    def rcv(self, size):
+        return self.client.recv(size).decode()
+
+
+
+
+
