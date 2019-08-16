@@ -157,13 +157,13 @@ def check_winner():
     if state == 'offline':
         if int(ai.score) == 5:
             winner_text = largeFont.render('The winner is: computer', True, white, dark_gray)
-            display.blit(winner_text, (465, 270))
+            display.blit(winner_text, (435, 270))
         elif int(ai.score) == 6:
             pygame.quit()
             sys.exit()
         if int(player.score) == 5:
             winner_text = largeFont.render('The winner is: player one', True, white, dark_gray)
-            display.blit(winner_text, (465, 270))
+            display.blit(winner_text, (425, 270))
         elif int(player.score) == 6:
             pygame.quit()
             sys.exit()
