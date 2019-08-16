@@ -1,6 +1,5 @@
 import pygame
 import sys
-import time
 import math
 import random
 import os
@@ -14,9 +13,12 @@ state = 'menu'
 n = None
 is_player_two = False
 enemy = None
+scores = []
 player_one = None
 display = None
 finished = True
+username = ''
+winner = ''
 # open game window centered on the screen
 os.environ['SDL_VIDEO_CENTERED'] = "1"
 
@@ -38,7 +40,7 @@ class Ball:
 
     def __init__(self):
         self.direction = 0
-        self.speed = 0.7
+        self.speed = 1
         self.reset()
 
     def reset(self):
@@ -59,6 +61,7 @@ class Ball:
         self.collisions()
 
     def online_update(self, x, y):
+        # print(x, y)
         self.x = float(x)
         self.y = float(y)
         self.collisions()
@@ -130,11 +133,6 @@ class Paddle:
 
 
 # initializing classes
-# if is_player_two:
-#     player = Paddle(1200, 330)
-# else:
-#     player = Paddle(20, 330)
-
 player = None
 ai = Paddle(1200, 330)
 ball = Ball()
@@ -157,44 +155,87 @@ def draw_dashed_line():
 
 
 def check_winner():
-    if int(ai.score) == 5:
-        winner_text = largeFont.render('The winner is: computer', True, white, dark_gray)
-        display.blit(winner_text, (400, 270))
-    elif int(ai.score) == 6:
-        pygame.quit()
-        sys.exit()
-    if int(player.score) == 5:
-        winner_text = largeFont.render('The winner is: player one', True, white, dark_gray)
-        display.blit(winner_text, (400, 270))
-    elif int(player.score) == 6:
-        pygame.quit()
-        sys.exit()
+    if state == 'offline':
+        if int(ai.score) == 5:
+            winner_text = largeFont.render('The winner is: computer', True, white, dark_gray)
+            display.blit(winner_text, (465, 270))
+        elif int(ai.score) == 6:
+            pygame.quit()
+            sys.exit()
+        if int(player.score) == 5:
+            winner_text = largeFont.render('The winner is: player one', True, white, dark_gray)
+            display.blit(winner_text, (465, 270))
+        elif int(player.score) == 6:
+            pygame.quit()
+            sys.exit()
+    elif state == 'online_game':
+        # fix for a bug where network receives too much info
+        if len(enemy.score) > 2:
+            enemy.score = enemy.score[:2]
+        if len(player.score) > 2:
+            enemy.score = enemy.score[:2]
+        if is_player_two:
+            if int(enemy.score) == 5:
+                winner_text = largeFont.render('You Won!', True, white, dark_gray)
+                display.blit(winner_text, (465, 270))
+            elif int(enemy.score) == 6:
+                pygame.quit()
+                sys.exit()
+            if int(player.score) == 5:
+                winner_text = largeFont.render('You Lost!', True, white, dark_gray)
+                display.blit(winner_text, (465, 270))
+            elif int(player.score) == 6:
+                pygame.quit()
+                sys.exit()
+        else:
+            if int(enemy.score) == 5:
+                winner_text = largeFont.render('You Lost!', True, white, dark_gray)
+                display.blit(winner_text, (465, 270))
+            elif int(enemy.score) == 6:
+                pygame.quit()
+                sys.exit()
+            if int(player.score) == 5:
+                winner_text = largeFont.render('You Won!', True, white, dark_gray)
+                display.blit(winner_text, (465, 270))
+            elif int(player.score) == 6:
+                pygame.quit()
+                sys.exit()
 
 
 def draw_scores():
-    global player, enemy
+    global player, enemy, scores
     if state == 'online_game':
         # defining who gets the score
         if not is_player_two:
             if ball.x > 1250:
-                player.score = str(int(player.score) + 1).zfill(2)
+                player.score = str(int(player.score) + 1)
                 ball.reset()
             elif ball.x < 0:
-                enemy.score = str(int(enemy.score) + 1).zfill(2)
+                enemy.score = str(int(enemy.score) + 1)
                 ball.reset()
+
+            scores = [player.score, enemy.score]
+
+            es = str(enemy.score).zfill(2)
+            ps = str(player.score).zfill(2)
+
+            player_score = font.render(str(ps), True, white, dark_gray)
+            enemy_score = font.render(str(es), True, white, dark_gray)
+
+            display.blit(player_score, (560, 10))
+            display.blit(enemy_score, (650, 10))
+
         elif is_player_two:
-            if ball.x > 1250:
-                enemy.score = str(int(enemy.score) + 1).zfill(2)
-                ball.reset()
-            elif ball.x < 0:
-                player.score = str(int(player.score) + 1).zfill(2)
-                ball.reset()
+            print(player.score, enemy.score)
 
-        player_score = font.render(str(player.score), True, white, dark_gray)
-        enemy_score = font.render(str(enemy.score), True, white, dark_gray)
+            enemy_score = str(enemy.score).zfill(2)
+            player_score = str(player.score).zfill(2)
 
-        display.blit(player_score, (560, 10))
-        display.blit(enemy_score, (650, 10))
+            player_score = font.render(str(player_score), True, white, dark_gray)
+            enemy_score = font.render(str(enemy_score), True, white, dark_gray)
+
+            display.blit(player_score, (560, 10))
+            display.blit(enemy_score, (650, 10))
 
     elif state == 'offline':
         if ball.x > 1250:
@@ -212,34 +253,50 @@ def draw_scores():
 
 
 def handle_network():
-    global is_player_two, enemy
+    global is_player_two, enemy, scores, player, winner
     data = n.rcv(4096)
     if ':' in data:
+        if 'player' or 'enemy' in data:
+            if 'player' in data:
+                winner = 'player'
+            elif 'enemy' in data:
+                winner = 'enemy'
+
         arr = data.split(':')
 
         # update enemy player
         x, y = arr[0].split('.')[1], arr[0].split('.')[2]
-        enemy = Paddle(x, y)
         enemy.online_update(x, y)
 
         # update ball position based on client ones ball position
         a, b = arr[1].split('|')[0], arr[1].split('|')[1]
         ball.online_update(a, b)
 
-        # # get scores
-        # s1, s2 = arr[2].split(',')[0], arr[2].split(',')[1]
+        # get scores
+        try:
+            player.score, enemy.score = arr[2].split(',')
+        except IndexError as e:
+            print(e)
+
+        # player.score, enemy.score = arr[2].split(',')[0], arr[2].split(',')[1]
+        # scores = [player.score, enemy.score]
         # scores[0], scores[1] = s1, s2
         is_player_two = True
 
     elif '.' in data:
         arr = data.split('.')
         x, y = arr[1], arr[2]
-        print(x, y)
-        enemy = Paddle(x, y)
+        # print(x, y)
+        # enemy = Paddle(x, y)
         enemy.online_update(x, y)
         # update ball normally
         ball.update()
         is_player_two = False
+    elif 'player' or 'enemy' in data:
+        if 'player' in data:
+            winner = 'player'
+        elif 'enemy' in data:
+            winner = 'enemy'
 
 
 def game_loop():
@@ -267,6 +324,11 @@ def game_loop():
             #   updating objects and screen
             pygame.display.update()
         elif state == 'online_wait':
+            display.fill(dark_gray)
+            waiting_text = largeFont.render('Waiting...', True, white, dark_gray)
+            display.blit(waiting_text, (450, 260))
+            pygame.display.update()
+
             data = n.rcv(4096)
             if ':' in data:
                 arr = data.split(':')
@@ -281,11 +343,16 @@ def game_loop():
                 response = f'{n.id}.{player.x}.{player.y}'
                 n.snd(response)
             elif not is_player_two:
-                response = f'{n.id}.{player.x}.{player.y}:{ball.x}|{ball.y}'
-                n.snd(response)
+                try:
+                    response = f'{n.id}.{player.x}.{player.y}:{ball.x}|{ball.y}:{scores[0]},{scores[1]}'
+                    n.snd(response)
+                except IndexError:
+                    response = f'{n.id}.{player.x}.{player.y}:{ball.x}|{ball.y}'
+                    n.snd(response)
 
             # updating objects and screen
             display.fill(dark_gray)
+
             player.update()
             # handle incoming network data
             handle_network()
@@ -297,12 +364,12 @@ def game_loop():
 
 
 def menu():
-    global ip, finished, display, n, state, is_player_two, player
+    global ip, finished, display, n, state, is_player_two, player, enemy, username
     print("Hello and welcome to pong-multiplayer by @stoozy\nWhat would you like to do?")
-    print(" 1. Create a game\n 2. Join a game\n 3. Play vs computer (you won't win) ")
+    print("1. Join a game\n2. Play vs computer (you won't win) ")
     choice = int(input("Enter choice:"))
 
-    if choice == 3:
+    if choice == 2:
         state = 'offline'
         display = pygame.display.set_mode(res)
         player = Paddle(20, 330)
@@ -310,16 +377,17 @@ def menu():
         game_loop()
     else:
         state = 'online'
-        # join_ip = str(input("What is the IP of the host?\nIP:"))
+        join_ip = str(input("What is the IP of the host?\nIP:"))
         finished = False
         username = input('Username:')
-        n = Network(username)
+        n = Network(username, ip=join_ip, port=59555)
 
         if n.state == 'wait':
             print('waiting for other player...')
             state = 'online_wait'
             is_player_two = False
             player = Paddle(20, 330)
+            enemy = Paddle(1200, 330)
 
             display = pygame.display.set_mode(res)
             game_loop()
@@ -331,9 +399,11 @@ def menu():
             if n.id == '0':
                 is_player_two = False
                 player = Paddle(20, 330)
+                enemy = Paddle(1200, 330)
             else:
                 is_player_two = True
                 player = Paddle(1200, 330)
+                enemy = Paddle(20, 330)
 
             display = pygame.display.set_mode(res)
             game_loop()
