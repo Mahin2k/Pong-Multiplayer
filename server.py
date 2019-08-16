@@ -7,8 +7,8 @@ def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # host and port
-    host = 'localhost'
-    port = 5555
+    host = '0.0.0.0'
+    port = 59559
 
     # binding socket and listening
     sock.bind((host, port))
@@ -56,6 +56,7 @@ def main():
                                     if clients[client] == user:
                                         client.send(f'{j}:start'.encode())
                                         print(f'Sending start signal to {user} ID:{j}')
+
                     else:
                         connection.send('wait'.encode())
 
@@ -72,20 +73,25 @@ def main():
                         player_id = 0
                         player_one_pos = arr[0]
                         ball_pos = arr[1]
+
                         print('Client one data:', player_one_pos, ball_pos)
                         for j, client in enumerate(clients):
                             if j != player_id:
                                 client.send(data.encode())
                                 print(f'Sending {data} to player: {j}')
                     elif ':' not in data:
-                        arr = data.split('.')
-                        player_id = 1
-                        player_two_pos = arr[0]
-                        print("Client two data:", player_two_pos)
-                        for j, client in enumerate(clients):
-                            if j != player_id:
-                                client.send(data.encode())
-                                print(f'Sending {data} to player: {j}')
+                        if data != 'enemy' or 'player':
+                            arr = data.split('.')
+                            player_id = 1
+                            player_two_pos = arr[0]
+                            print("Client two data:", player_two_pos)
+                            for j, client in enumerate(clients):
+                                if j != player_id:
+                                    client.send(data.encode())
+                                    print(f'Sending {data} to player: {j}')
+                        else:
+                            for client, user in clients.items():
+                                print(user, "won!")
 
 
 if __name__ == '__main__':

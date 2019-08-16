@@ -2,11 +2,11 @@ import socket
 
 
 class Network:
-    def __init__(self, username):
+    def __init__(self, username, ip, port):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = 'localhost'
+        self.host = ip
         self.MAX_LENGTH = 4096
-        self.port = 5555
+        self.port = port
         self.address = (self.host, self.port)
         self.id = ''
         self.state = ''
