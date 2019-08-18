@@ -40,7 +40,11 @@ class Ball:
 
     def __init__(self):
         self.direction = 0
-        self.speed = 1
+        if state == 'online_game':
+            self.speed = 5
+        else:
+            self.speed = 1
+
         self.reset()
 
     def reset(self):
@@ -109,21 +113,38 @@ class Paddle:
         self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150))
 
     def update(self):
-        #   pressed keys object. Updates on the while loop
-        keys = pygame.key.get_pressed()
+        if state == 'online_game':
+            #   pressed keys object. Updates on the while loop
+            keys = pygame.key.get_pressed()
 
-        #   Player movement
-        if keys[pygame.K_UP]:
-            if self.y == 10:
-                self.y = self.y
-            else:
-                self.y -= 1
-        elif keys[pygame.K_DOWN]:
-            if self.y == 560:
-                self.y = self.y
-            else:
-                self.y += 1
-        self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150))
+            #   Player movement
+            if keys[pygame.K_UP]:
+                if self.y == 10:
+                    self.y = self.y
+                else:
+                    self.y -= 5
+            elif keys[pygame.K_DOWN]:
+                if self.y == 560:
+                    self.y = self.y
+                else:
+                    self.y += 5
+            self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150))
+        else:
+            #   pressed keys object. Updates on the while loop
+            keys = pygame.key.get_pressed()
+
+            #   Player movement
+            if keys[pygame.K_UP]:
+                if self.y == 10:
+                    self.y = self.y
+                else:
+                    self.y -= 1
+            elif keys[pygame.K_DOWN]:
+                if self.y == 560:
+                    self.y = self.y
+                else:
+                    self.y += 1
+            self.rect = pygame.draw.rect(display, white, (self.x, self.y, 25, 150))
 
     def online_update(self, x, y):
         self.x = int(x)
