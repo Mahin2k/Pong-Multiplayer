@@ -1,8 +1,11 @@
 import socket
 import select
-
+from requests import get
 
 def main():
+
+    ip = get('https://api.ipify.org/?format=text').text
+
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -14,7 +17,7 @@ def main():
     sock.bind((host, port))
     sock.listen(2)
 
-    print(f'Server started on {host}:{port}')
+    print(f'\n[+] Server started on {ip}:{port}')
 
     sockets_list = [sock]
     outputs = []
@@ -29,7 +32,7 @@ def main():
             print(e)
 
     while True:
-        print('\n waiting for next event')
+        print('\nWaiting for next event')
 
         #   selecting readable/writable lists with select module
         readable, writable, errs = select.select(sockets_list, outputs, [])
