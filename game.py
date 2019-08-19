@@ -248,7 +248,7 @@ def draw_scores():
             display.blit(enemy_score, (650, 10))
 
         elif is_player_two:
-            print(player.score, enemy.score)
+            # print(player.score, enemy.score)
 
             enemy_score = str(enemy.score).zfill(2)
             player_score = str(player.score).zfill(2)
@@ -354,7 +354,7 @@ def game_loop():
             data = n.rcv(1024)
             if ':' in data:
                 arr = data.split(':')
-                print(arr)
+                # print(arr)
                 n.id = arr[0]
                 state = 'online_game'
                 print('started game...')
