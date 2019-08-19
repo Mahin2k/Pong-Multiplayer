@@ -276,7 +276,7 @@ def draw_scores():
 
 def handle_network():
     global is_player_two, enemy, scores, player, winner
-    data = n.rcv(4096)
+    data = n.rcv(1024)
     if ':' in data:
         if 'player' or 'enemy' in data:
             if 'player' in data:
@@ -351,7 +351,7 @@ def game_loop():
             display.blit(waiting_text, (450, 260))
             pygame.display.update()
 
-            data = n.rcv(4096)
+            data = n.rcv(1024)
             if ':' in data:
                 arr = data.split(':')
                 print(arr)

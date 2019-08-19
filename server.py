@@ -26,7 +26,7 @@ def main():
 
     def get_user(c):
         try:
-            return c.recv(4096).decode()
+            return c.recv(1024).decode()
 
         except Exception as e:
             print(e)
@@ -49,8 +49,13 @@ def main():
                     clients[connection] = username
                     users.append(username)
 
+                    
+                    # Closing connection with 3 or more players
+                    if len(users) > 2:
+                        connection.close()
+
                     # check if two players are connected
-                    if len(users) == 2:
+                    elif len(users) == 2:
                         for client, username in clients.items():
                             # sending player id and start signal to all sockets
                             # other than the server socket
@@ -58,26 +63,27 @@ def main():
                                 for j, user in enumerate(users):
                                     if clients[client] == user:
                                         client.send(f'{j}:start'.encode())
-                                        print(f'Sending start signal to {user} ID:{j}')
-
+                                        # print(f'Sending start signal to {user} ID:{j}')
                     else:
                         connection.send('wait'.encode())
+                                        
+
 
                 else:
-                    data = s.recv(4096).decode()
+                    data = s.recv(1024).decode()
 
                     if not data:
                         s.close()
                         sockets_list.remove(s)
                         del clients[s]
 
-                    if ':' in data:
+                    elif ':' in data:
                         arr = data.split(':')
                         player_id = 0
                         player_one_pos = arr[0]
                         ball_pos = arr[1]
 
-                        print('Client one data:', player_one_pos, ball_pos)
+                        # print('Client one data:', player_one_pos, ball_pos)
                         for j, client in enumerate(clients):
                             if j != player_id:
                                 client.send(data.encode())
@@ -87,14 +93,11 @@ def main():
                             arr = data.split('.')
                             player_id = 1
                             player_two_pos = arr[0]
-                            print("Client two data:", player_two_pos)
+                            # print("Client two data:", player_two_pos)
                             for j, client in enumerate(clients):
                                 if j != player_id:
                                     client.send(data.encode())
                                     print(f'Sending {data} to player: {j}')
-                        else:
-                            for client, user in clients.items():
-                                print(user, "won!")
 
 
 if __name__ == '__main__':

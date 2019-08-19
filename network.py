@@ -5,7 +5,7 @@ class Network:
     def __init__(self, username, ip, port):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = ip
-        self.MAX_LENGTH = 4096
+        self.MAX_LENGTH = 1024
         self.port = port
         self.address = (self.host, self.port)
         self.id = ''
